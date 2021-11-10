@@ -1,0 +1,19 @@
+# We use alpine instead of ubuntu, because alpine's size is about 5-6 MB, and ubuntu's is 200 MB
+FROM alpine:3.13.6
+
+ENV SCALA_VERSION 2.12
+ENV KAFKA_VERSION 3.0.0
+
+RUN apk update && apk upgrade
+RUN apk add openjdk8 curl bash
+RUN curl -sSl "https://dlcdn.apache.org/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz" \
+    | tar -xzf - -C /tmp
+RUN mv /tmp/kafka_${SCALA_VERSION}-${KAFKA_VERSION} zoo
+
+# 2181 is zookeeper, 9092 is kafka
+EXPOSE 2181
+
+WORKDIR /zoo
+
+# Zookeeper
+CMD ["bin/zookeeper-server-start.sh", "config/zookeeper.properties"]

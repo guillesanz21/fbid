@@ -1,0 +1,9 @@
+FROM fbid.spark
+
+WORKDIR /spark
+
+# VOLUME /spark/models
+
+# EXPOSE 8080
+
+CMD ["python3", "resources/train_spark_mllib_model.py", "."]

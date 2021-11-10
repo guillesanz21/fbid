@@ -1,0 +1,10 @@
+# We choose this base image over a standar ubuntu/alpine version because this one has python3, pip, and the requirements.txt already installed.
+# We won't use Spark here though
+FROM fbid.spark
+
+WORKDIR /spark/resources/web
+
+# This is the right path?
+ENV PROJECT_HOME=/spark
+
+CMD ["python3","predict_flask.py"]
