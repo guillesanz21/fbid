@@ -24,7 +24,8 @@ object MakePrediction {
     // val current_dir = System.getProperty("user.dir")
 
     //Load the arrival delay bucketizer
-    val base_path= "/home/guille/master/fbid/bigdata"
+    // val base_path= "/home/guille/master/fbid/bigdata"
+    val base_path= "/fbid"
     val arrivalBucketizerPath = "%s/models/arrival_bucketizer_2.0.bin".format(base_path)
     print(arrivalBucketizerPath.toString())
     val arrivalBucketizer = Bucketizer.load(arrivalBucketizerPath)

@@ -129,7 +129,7 @@ def deploy_docker():
 
     time.sleep(3)
 
-    os.system("docker exec -tt mongo ./import_distances.sh")
+    os.system("docker exec -it mongo ./import_distances.sh")
 
     print("\n########## Deploying Spark base image... ##########")
     os.system("docker build . -f docker/Dockerfile.spark -t fbid.spark")
@@ -140,15 +140,15 @@ def deploy_docker():
     if not trained:
         train()
 
-    # TODO: master doesn't work
+    # MASTER
     c("docker run -p 7077:7077 -p 8080:8080 -e SPARK_MODE=master --network host \
         --name master bitnami/spark:3.1.2")
-    # TODO: worker doesn't work
+    # WORKER
     c("docker run --name worker -p 8081:8081 -e SPARK_MODE=worker \
-        -e SPARK_MASTER_URL=spark://spark-master:7077 --network host bitnami/spark:3.1.2")
-        # -e SPARK_MASTER_URL=localhost:7077 --network host bitnami/spark:3.1.2")
+        -e SPARK_MASTER_URL=spark://${USER}:7077 --network host bitnami/spark:3.1.2")
+    #     # -e SPARK_MASTER_URL=localhost:7077 --network host bitnami/spark:3.1.2")
 
-    #TODO: test
+    # TODO: test
     c("docker build . -f docker/Dockerfile.spark-submit -t fbid.spark-submit \
         && docker run --name spark-submit -d --network host fbid.spark-submit")
 
@@ -173,6 +173,7 @@ def download_data():
 
 def train():
     print("\n########## Deploying training container... ##########")
+    c("docker build . -f docker/Dockerfile.spark -t fbid.spark")
     c("docker build . -f docker/Dockerfile.train -t fbid.train \
         && docker run --name train --network host \
         -v ${PWD}/models:/spark/models fbid.train")
