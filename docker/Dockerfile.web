@@ -2,9 +2,10 @@
 # We won't use Spark here though
 FROM fbid.spark
 
-WORKDIR /spark/resources/web
+COPY . /fbid
 
-# This is the right path?
-ENV PROJECT_HOME=/spark
+WORKDIR /fbid/resources/web
+
+ENV PROJECT_HOME=/fbid
 
 CMD ["python3","predict_flask.py"]
