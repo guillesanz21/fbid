@@ -82,15 +82,17 @@ def main():
 
 def down():
     print("Stopping the containers:")
-    c("docker stop kafka zoo mongo spark worker master spark-submit train web")
+    c("docker-compose down")
+    c("docker-compose rm")
+    # c("docker stop kafka zoo mongo spark worker master spark-submit train web")
     time.sleep(2)
-    c("docker rm kafka zoo mongo spark worker master spark-submit train web")
-    time.sleep(2)
-    c("docker rmi fbid.kafka fbid.zoo fbid.mongo fbid.spark fbid.train fbid.spark-submit fbid.web")
+    # c("docker rm kafka zoo mongo spark worker master spark-submit train web")
+    # time.sleep(2)
+    c("docker rmi fbid.kafka fbid.zookeeper fbid.zoo fbid.mongo fbid.spark fbid.train fbid.spark-submit fbid.web")
 
 
     print("Deleting the custom network...")
-    # c("docker network rm fbid")
+    c("docker network rm fbid_fbid")
 
     # TODO: Delete volumes (?)
 
@@ -101,74 +103,75 @@ def deploy_docker(trained=False):
     print("Deploying with docker...")
     print("########################\n")
 
-    # print ("\n########## Creating the custom network...  ##########")
-    # c("docker network create -d host fbid")
+    print ("\n########## Creating the custom network...  ##########")
+    c("docker network create fbid_fbid")
 
 
     print("\n########## Deploying zookeeper... ##########")
     c("docker build . -f docker/Dockerfile.zk -t fbid.zoo \
-        && docker run --name zoo -d -p 2181:2181 --network host fbid.zoo")
+        && docker run --name zoo -d -p 2181:2181 --network fbid_fbid \
+        --hostname zookeeper fbid.zoo")
+      
 
-    time.sleep(3)   # TODO: buscar otra manera de esperar a que el contenedor arranque y lance zookeeper
+    time.sleep(3)
 
     print("\n########## Deploying kafka... ##########")
     c("docker build . -f docker/Dockerfile.kafka -t fbid.kafka \
-        && docker run --name kafka -d -p 9092:9092 --network host fbid.kafka")
+        && docker run --name kafka -d -p 9092:9092 --network fbid_fbid \
+        -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092 \
+        -e KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092 \
+        -e KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 \
+        --hostname kafka fbid.kafka")
     
-    time.sleep(3)
+    # time.sleep(3)
 
-    createTopics = "/kafka/bin/kafka-topics.sh \
-      --create \
-      --bootstrap-server localhost:9092 \
-      --replication-factor 1 \
-      --partitions 1 \
-      --topic flight_delay_classification_request"
-
-    c(f"docker exec kafka {createTopics}")
-
-    time.sleep(3)
-
-    # c("docker exec kafka /kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list")
+    # c("docker exec kafka /kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list")
 
     print("\n########## Deploying MongoDB... ##########")
     c("docker build . -f docker/Dockerfile.mongo -t fbid.mongo \
-        && docker run --name mongo -d -p 27017:27017 --network host \
-        -v ${PWD}/data/mongo:/flights/db fbid.mongo")
+        && docker run --name mongo -d -p 27017:27017 --network fbid_fbid \
+        -v ${PWD}/data/mongo:/flights/db \
+        -e MONGODB_URI=mongodb://mongo:27017/ \
+        --hostname mongo fbid.mongo")
 
-    time.sleep(3)
-
-    os.system("docker exec -it mongo ./import_distances.sh")
 
     print("\n########## Deploying Spark base image... ##########")
-    os.system("docker build . -f docker/Dockerfile.spark -t fbid.spark")
+    c("docker build . -f docker/Dockerfile.spark -t fbid.spark")
 
-    time.sleep(3)
     sparkBuilded = True
     if not trained:
         train()
     
     # MASTER
-    c("docker run -p 7077:7077 -d -p 8080:8080 -e SPARK_MODE=master --network host \
-        --name master bitnami/spark:3.1.2")
+    print("\n########## Deploying SPARK MASTER... ##########")
+    c("docker run --name master -d -p 7077:7077 -p 8080:8080 \
+        -e SPARK_MODE=master --network fbid_fbid \
+        --hostname master bitnami/spark:3.1.2")
     # WORKER
-    c("docker run --name worker -d -p 8081:8081 -e SPARK_MODE=worker \
-        -e SPARK_MASTER_URL=spark://${USER}:7077 --network host bitnami/spark:3.1.2")
-    #     # -e SPARK_MASTER_URL=localhost:7077 --network host bitnami/spark:3.1.2")
+    print("\n########## Deploying SPARK WORKER... ##########")
+    c("docker run --name worker -d -p 8081:8081 --network fbid_fbid \
+        -e SPARK_MODE=worker \
+        -e SPARK_MASTER_URL=spark://master:7077 \
+        --hostname worker bitnami/spark:3.1.2")
 
     # SPARK-SUBMIT
+    print("\n########## Deploying SPARK SUBMIT... ##########")
     c("docker build . -f docker/Dockerfile.spark-submit -t fbid.spark-submit \
-        && docker run --name spark-submit -d --network host fbid.spark-submit")
+        && docker run --name spark-submit -d --network fbid_fbid \
+        --hostname sparksubmit fbid.spark-submit")
 
     time.sleep(5)
+    print("\n########## Deploying FLASK WEB... ##########")
     c("docker build . -f docker/Dockerfile.web -t fbid.web \
-        && docker run --name web -p 5000:5000 -d --network host fbid.web")
+        && docker run --name web -p 5000:5000 -d --network fbid_fbid \
+        -e MONGO_URI=mongodb://mongo:27017 fbid.web")
     
 
 def deploy_compose():
     print("Deploying with docker-compose...")
-    # BUILD SPAR_BASE IMAGE
-    # compose_up()
-    # TODO
+    c("docker network create fbid_fbid")
+    c("docker-compose up -d")
+    print("DONE")
 
 def pullImages():
     pull("alpine:3.13.6")

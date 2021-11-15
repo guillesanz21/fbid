@@ -13,13 +13,9 @@ WORKDIR /flights
 COPY resources/import_distances.sh import_distances.sh
 COPY docker/resources/origin_dest_distances.jsonl data/origin_dest_distances.jsonl
 
+COPY docker/mongo.sh /mongo.sh
 
-# CMD ./import_distances.sh
-# Esta linea da este error: 
-# error connecting to host: could not connect to server: server selection error: server selection timeout, 
-# current topology: { Type: Single, Servers: [{ Addr: localhost:27017, Type: Unknown, Last error: connection() 
-# error occured during connection handshake: dial tcp 127.0.0.1:27017: connect: connection refused }, ] }
+RUN chmod +x /mongo.sh
 
-# Solución temporal: docker exec
+CMD ["/mongo.sh"]
 
-# ENTRYPOINT mongo

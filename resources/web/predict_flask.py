@@ -12,7 +12,8 @@ import predict_utils
 # Set up Flask, Mongo and Elasticsearch
 app = Flask(__name__)
 
-client = MongoClient()
+# client = MongoClient()
+client = MongoClient("mongodb://mongo:27017")
 
 from pyelasticsearch import ElasticSearch
 elastic = ElasticSearch(config.ELASTIC_URL)
@@ -25,7 +26,8 @@ import datetime
 
 # Setup Kafka
 from kafka import KafkaProducer
-producer = KafkaProducer(bootstrap_servers=['localhost:9092'],api_version=(0,10))
+# producer = KafkaProducer(bootstrap_servers=['localhost:9092'],api_version=(0,10))
+producer = KafkaProducer(bootstrap_servers=['kafka:9092'],api_version=(0,10))
 PREDICTION_TOPIC = 'flight_delay_classification_request'
 
 import uuid
@@ -212,6 +214,7 @@ def airline(carrier_code):
 @app.route("/airlines")
 @app.route("/airlines/")
 def airlines():
+  print("#################################### HEY IT IS ARILINEs()")
   airlines = client.agile_data_science.airplanes_per_carrier.find()
   return render_template('all_airlines.html', airlines=airlines)
 

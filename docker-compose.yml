@@ -1,87 +1,147 @@
 version: "3.9"
 services:
-
-# zk
-# kafka ---<
-# mongo ----<
-# web
-# spark worker
-# spark master
-# spark submit
-
- zookeeper:
+  zookeeper:
+    image: fbid.zookeeper
     build:
-          context: ./docker
-          dockerfile: Dockerfile.zk
-    hostname: zoo
+      context: .
+      dockerfile: ./docker/Dockerfile.zk
     container_name: zoo
+    hostname: zookeeper
     labels:
       name: fbid.zoo
       description: "FBID (MUIRST - ETSIT - UPM) final assigment - Zookeeper node"
     restart: always
     ports:
       - 2181:2181
+    networks:
+      - fbid
 
   kafka:
+    image: fbid.kafka
     build:
-          context: ./docker
-          dockerfile: Dockerfile.kafka
+      context: .
+      dockerfile: ./docker/Dockerfile.kafka
     container_name: kafka
+    hostname: kafka
     labels:
       name: fbid.kafka
       description: "FBID (MUIRST - ETSIT - UPM) final assigment - Kafka node"
+    # tty: true
     ports:
       - "9092:9092"
-    command: sh -c "/kafka/bin/kafka-topics.sh \
-      --create \
-      --bootstrap-server localhost:9092 \
-      --replication-factor 1 \
-      --partitions 1 \
-      --topic flight_delay_classification_request"
+    networks:
+      - fbid
+    environment:
+      KAFKA_CREATE_TOPICS: "flight_delay_classification_request:1:1"
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     depends_on:
       - zookeeper
-
+    
+  spark:
+    image: fbid.spark
+    container_name: spark
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.spark
 
   mongo:
-    image: mongo
+    image: fbid.mongo
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.mongo
     container_name: mongo
+    hostname: mongo
     labels:
       name: fbid.mongo
       description: "FBID (MUIRST - ETSIT - UPM) final assigment - Mongo container"
     restart: always
     ports:
       - 27017:27017
+    networks:
+      - fbid
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: fbid
+      # MONGO_INITDB_ROOT_USERNAME: root
+      # MONGO_INITDB_ROOT_PASSWORD: fbid
+      MONGODB_URI: mongodb://mongo:27017/
+    volumes:
+      - ${PWD}/data/mongo:/flights/db
 
-  mongo-express:
-    image: mongo-express
-    container_name: mongo-express
+  master:
+    image: bitnami/spark:3.1.2
+    container_name: master
+    hostname: master
     labels:
-      name: fbid.mongo-express
-      description: "FBID (MUIRST - ETSIT - UPM) final assigment - Mongo express container"
+      name: fbid.master
+      description: "FBID (MUIRST - ETSIT - UPM) final assigment - Spark master container"
     restart: always
     ports:
-      - 8081:8081
+      - 7077:7077
+      - 8080:8080
+    networks:
+      - fbid
     environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: root
-      ME_CONFIG_MONGODB_ADMINPASSWORD: fbid
-      ME_CONFIG_MONGODB_URL: mongodb://root:fbid@mongo:27017/
+      SPARK_MODE: master
 
- 
+  worker:
+    image: bitnami/spark:3.1.2
+    # container_name: worker
+    # hostname: worker
+    labels:
+      name: fbid.worker
+      description: "FBID (MUIRST - ETSIT - UPM) final assigment - Spark worker container"
+    restart: always
+    deploy:
+      replicas: 5
+    # ports:
+    #   - 8081:8081
+    networks:
+      - fbid
+    environment:
+      SPARK_MODE: worker
+      SPARK_MASTER_URL: spark://master:7077
+    depends_on:
+      - master
+  
+  spark-submit:
+    image: fbid.spark-submit
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.spark-submit
+    container_name: spark-submit
+    hostname: sparksubmit
+    labels:
+      name: fbid.spark-submit
+      description: "FBID (MUIRST - ETSIT - UPM) final assigment - Spark submit container"
+    restart: always
+    networks:
+      - fbid
+    depends_on:
+      - master
+      - mongo
+      - kafka
+  
+  web:
+    image: fbid.web
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.web
+    container_name: web
+    labels:
+      name: fbid.web
+      description: "FBID (MUIRST - ETSIT - UPM) final assigment - Flask web container"
+    restart: always
+    environment:
+      MONGO_URI: mongodb://mongo:27017/
+    ports:
+      - 5000:5000
+    networks:
+      - fbid
+    depends_on:
+      - mongo
+      - spark-submit
 
-  # web:
-  #   # build:
-  #     # Aqui hace falta hacer un Dockerfile e instalar las dependencias de "requirements.txt".
-  #     context:
-  #     dockerfile:
-  #   container_name: web
-  #   labels:
-  #     name: fbid.web
-  #     description: "FBID (MUIRST - ETSIT - UPM) final assigment - Flask web container"
-  #   depends_on:
-  #     - mongo
-  #     - mongo-express
+networks:
+  fbid:
 
- 
