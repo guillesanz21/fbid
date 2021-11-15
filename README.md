@@ -6,8 +6,11 @@ Guillermo Sanz
 
 NOTE: All the commands need to be executed in the root working directory
 
-The prediction is done at the following URL:
+The prediction is done in the following link:
 `http://localhost:5000/flights/delays/predict_kafka`
+
+The spark UI can be accessed in the following link:
+`http://localhost:8080/nifi`
 
 Improvements:
 
@@ -16,7 +19,7 @@ Improvements:
 - [X] Docker compose
 - [ ] Airflow
 - [ ] K8
-- [ ] Google cloud
+- [ ] Google Cloud
 
 ## Execution with Docker:
 

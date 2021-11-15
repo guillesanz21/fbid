@@ -1,5 +1,7 @@
 data
 .git
+.bsp
+.metals
 spark
 hadoop
 elasticsearch
