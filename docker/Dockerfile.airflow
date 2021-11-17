@@ -1,0 +1,21 @@
+FROM fbid.spark
+
+COPY . /fbid
+WORKDIR /fbid/resources/airflow
+
+EXPOSE 8000
+
+# RUN pip install -r requirements.txt -c constraints.txt
+# ENV PROJECT_HOME=/
+
+# ENV AIRFLOW_HOME=~/airflow
+# RUN mkdir ${AIRFLOW_HOME}/dags
+# RUN mkdir ${AIRFLOW_HOME}/logs
+# RUN mkdir ${AIRFLOW_HOME}/plugins
+
+# RUN airflow create --username admin --firstname Jack --lastname Sparrow --role Admin --email example@email.org
+
+# CMD ["airflow", "webserver", "--port", "8000"]
+# CMD ["airflow", "scheduler"]
+# CMD ["airflow", "run", "train_classifier_model_operator", "runme_0", "2017-07-01"]
+# CMD ["airflow", "dags", "trigger", "--exec-date", "2016-12-01", "agile_data_science_batch_prediction_model_training"]

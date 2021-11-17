@@ -25,10 +25,12 @@ def main():
 
     parser.add_argument("--package", action="store_true", help="Package the scala files")
 
+    parser.add_argument("--airflow", action="store_true", help="Deploys Apache Airflow")
+    
     args = parser.parse_args()
 
     if not args.up and not args.down and not args.train \
-        and not args.download and not args.pull and not args.package:
+        and not args.download and not args.pull and not args.package and not args.airflow:
         parser.parse_args(["--help"])
         sys.exit(0)
 
@@ -72,6 +74,8 @@ def main():
             else:
                 print("--up options: [docker, docker-compose|compose]")
                 return
+        if args.airflow:
+            airflow()
         else:
             parser.parse_args([--help])
         sys.exit(0)
@@ -195,6 +199,13 @@ def train():
         -v ${PWD}/models:/spark/models fbid.train")
     
     time.sleep(3)
+
+def airflow():
+    print("\n########## Deploying airflow container... ##########")
+    c("docker build . -f docker/Dockerfile.airflow -t fbid.airflow")
+    time.sleep(2)
+    c("docker run --name airflow --network host -p 8000:8000 fbid.airflow")
+    time.sleep(2)
 
 def packageScala():
     c("docker run -it -v ${PWD}/flight_prediction:/flight_prediction \
