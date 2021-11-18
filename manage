@@ -41,7 +41,6 @@ def main():
     trained = not not (False or os.popen("ls models | grep string_indexer_model*").read())
     sparkBuilded = not not (False or os.popen("docker images | grep fbid.spark").read())
 
-    print(f"SparkBuilded={sparkBuilded}")
     try:
         if args.down:
             down()
@@ -66,9 +65,11 @@ def main():
             if not pull:
                 pullImages()
             if args.up == "docker":
+                down()
                 deploy_docker()
                 return
             elif args.up in ["docker-compose", "compose"]:
+                compose_down()
                 deploy_compose()
                 return
             else:
@@ -84,25 +85,32 @@ def main():
         print(e)
         sys.exit(0)
 
-def down():
-    print("Stopping the containers:")
+def compose_down():
+    print("Stoping the containers:")
     c("docker-compose down")
     c("docker-compose rm")
-    # c("docker stop kafka zoo mongo spark worker master spark-submit train web")
     time.sleep(2)
-    # c("docker rm kafka zoo mongo spark worker master spark-submit train web")
-    # time.sleep(2)
+    c("docker rmi fbid.kafka fbid.zookeeper fbid.zoo fbid.mongo fbid.spark fbid.train fbid.spark-submit fbid.web")
+    print("Deleting custom network")
+    c("docker network rm fbid_fbid")
+
+
+def down():
+    print("Stopping the containers:")
+    c("docker stop kafka zoo mongo spark worker master spark-submit train web")
+    time.sleep(2)
+    c("docker rm kafka zoo mongo spark worker master spark-submit train web")
+    time.sleep(2)
     c("docker rmi fbid.kafka fbid.zookeeper fbid.zoo fbid.mongo fbid.spark fbid.train fbid.spark-submit fbid.web")
 
 
-    print("Deleting the custom network...")
-    c("docker network rm fbid_fbid")
+    # print("Deleting the custom network...")
+    # c("docker network rm fbid_fbid")
 
     # TODO: Delete volumes (?)
 
 def deploy_docker(trained=False):
-    down()
-
+    
     print("\n\n########################")
     print("Deploying with docker...")
     print("########################\n")
@@ -204,7 +212,7 @@ def airflow():
     print("\n########## Deploying airflow container... ##########")
     c("docker build . -f docker/Dockerfile.airflow -t fbid.airflow")
     time.sleep(2)
-    c("docker run --name airflow --network host -p 8000:8000 fbid.airflow")
+    c("docker run --name airflow --network host -d -p 8000:8000 fbid.airflow")
     time.sleep(2)
 
 def packageScala():

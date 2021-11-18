@@ -21,6 +21,14 @@ Improvements:
 - [ ] K8
 - [ ] Google Cloud
 
+## Execution Steps:
+
+```bash
+./manage --up download
+./manage --up package
+./manage --up {docker, compose}
+```
+
 ## Execution with Docker:
 
 ```

@@ -18,7 +18,7 @@ default_args = {
 }
 
 training_dag = DAG(
-  'agile_data_science_batch_prediction_model_training',
+  dag_id='agile_data_science_batch_prediction_model_training',
   default_args=default_args,
   schedule_interval=None
 )
