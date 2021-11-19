@@ -97,11 +97,11 @@ def compose_down():
 
 def down():
     print("Stopping the containers:")
-    c("docker stop kafka zoo mongo spark worker master spark-submit train web")
+    c("docker stop kafka zoo mongo spark worker master spark-submit train web airflow")
     time.sleep(2)
-    c("docker rm kafka zoo mongo spark worker master spark-submit train web")
+    c("docker rm kafka zoo mongo spark worker master spark-submit train web airflow")
     time.sleep(2)
-    c("docker rmi fbid.kafka fbid.zookeeper fbid.zoo fbid.mongo fbid.spark fbid.train fbid.spark-submit fbid.web")
+    c("docker rmi fbid.kafka fbid.zookeeper fbid.zoo fbid.mongo fbid.spark fbid.train fbid.spark-submit fbid.web fbid.airflow")
 
 
     # print("Deleting the custom network...")
@@ -177,6 +177,8 @@ def deploy_docker(trained=False):
     c("docker build . -f docker/Dockerfile.web -t fbid.web \
         && docker run --name web -p 5000:5000 -d --network fbid_fbid \
         -e MONGO_URI=mongodb://mongo:27017 fbid.web")
+
+    # airflow()
     
 
 def deploy_compose():

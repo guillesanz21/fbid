@@ -27,7 +27,24 @@ Improvements:
 ./manage --up download
 ./manage --up package
 ./manage --up {docker, compose}
+./manage --up airflow
 ```
+
+## Apache airflow questions
+
+Explain the architecture of apache airflow (see the official documentation of Apache Airflow).
+
+!(AIRFLOW_arch.png)
+Componentes:
+* Se compone de un *scheduler*, encargado de manejar tanto los workflows disparados como el paso de tareas para ejecución.
+* También contiene un *executor* encargado de manejar las tareas de ejecución.
+* Contiene también un *webserver*, con una interfaz para inspeccionar, disparar y debugear el comportamiento de DAGs y tareas. 
+* Un directorio de DAGs, leído por el webserver y el executor.
+* Una base de metadatos.
+
+Analyzing the setup.py: what happens if the task fails?, what is the peridocity of the task?
+
+* Cada cinco minutos se vuelve a lanzar, con un total de 3 intentos (default_args.retries = 3, default_args.retry_delay = 5 min).
 
 ## Execution with Docker:
 
