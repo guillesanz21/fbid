@@ -23,10 +23,20 @@ Improvements:
 
 ## Execution Steps:
 
+* Download any requirement:
+
 ```bash
 ./manage --up download
 ./manage --up package
+```
+
+* Deploy with docker (without Airflow) or docker-compose:
+```bash
 ./manage --up {docker, compose}
+```
+
+* Deploy with docker training with Airflow:
+```bash
 ./manage --up airflow
 ```
 

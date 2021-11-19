@@ -178,7 +178,6 @@ def deploy_docker(trained=False):
         && docker run --name web -p 5000:5000 -d --network fbid_fbid \
         -e MONGO_URI=mongodb://mongo:27017 fbid.web")
 
-    # airflow()
     
 
 def deploy_compose():
@@ -199,6 +198,7 @@ def pull(img):
 
 def download_data():
     c("resources/download_data.sh")
+    c("cp data/simple_flight_delay_features.jsonl.bz2 resources/")
 
 def train():
     print("\n########## Deploying training container... ##########")
@@ -207,15 +207,16 @@ def train():
     c("docker build . -f docker/Dockerfile.train -t fbid.train \
         && docker run --name train --network host \
         -v ${PWD}/models:/spark/models fbid.train")
-    
     time.sleep(3)
-
+    
 def airflow():
+    c("docker build . -f docker/Dockerfile.spark -t fbid.spark")
     print("\n########## Deploying airflow container... ##########")
     c("docker build . -f docker/Dockerfile.airflow -t fbid.airflow")
     time.sleep(2)
     c("docker run --name airflow --network host -d -p 8000:8000 fbid.airflow")
     time.sleep(2)
+    deploy_docker(True) 
 
 def packageScala():
     c("docker run -it -v ${PWD}/flight_prediction:/flight_prediction \

@@ -1,6 +1,9 @@
 FROM fbid.spark
 
 COPY . /fbid
+RUN mkdir /resources
+RUN mkdir /data
+# COPY /fbid/resources/* /resources/
 WORKDIR /fbid/resources/airflow
 
 EXPOSE 8000
@@ -9,10 +12,12 @@ RUN pip install -r requirements.txt -c constraints.txt
 ENV PROJECT_HOME=/
 
 ENV AIRFLOW_HOME=/fbid/resources/airflow
+ENV PATH=${PATH}:/opt/spark/bin
 RUN mkdir ${AIRFLOW_HOME}/dags
 RUN mkdir ${AIRFLOW_HOME}/logs
 RUN mkdir ${AIRFLOW_HOME}/plugins
 RUN airflow db init
 RUN cp setup.py ${AIRFLOW_HOME}/dags/
-
+RUN cp /fbid/resources/train_spark_mllib_model.py /resources/train_spark_mllib_model.py
+RUN cp /fbid/resources/simple_flight_delay_features.jsonl.bz2 /data/simple_flight_delay_features.jsonl.bz2
 CMD ["bash", "start_airflow.sh"]

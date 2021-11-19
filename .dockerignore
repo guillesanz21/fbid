@@ -1,8 +1,6 @@
-data
 .git
 .bsp
 .metals
-spark
 hadoop
 elasticsearch
 kafka
@@ -14,3 +12,4 @@ zeppelin
 elasticsearch-hadoop
 # models
 lib
+data
