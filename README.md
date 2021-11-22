@@ -12,30 +12,34 @@ The prediction is done in the following link:
 The spark UI can be accessed in the following link:
 `http://localhost:8080/nifi`
 
+The ariflow UI can be accessed in the following link:
+`http://localhost:8000/`
+
 Improvements:
 
 - [X] Spark-submit
 - [X] Docker
 - [X] Docker compose
-- [ ] Airflow
+- [X] Airflow
 - [ ] K8
 - [ ] Google Cloud
 
 ## Execution Steps:
 
-* Download any requirement:
+1. Download any requirement:
 
 ```bash
 ./manage --up download
 ./manage --up package
 ```
 
-* Deploy with docker (without Airflow) or docker-compose:
+2. Execute one of the setups:
+2.1. Deploy with docker (without Airflow) or docker-compose:
 ```bash
 ./manage --up {docker, compose}
 ```
 
-* Deploy with docker training with Airflow:
+2.2. Deploy with docker training with Airflow:
 ```bash
 ./manage --up airflow
 ```
